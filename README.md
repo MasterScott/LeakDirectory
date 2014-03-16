@@ -6,6 +6,7 @@ The purpose of this application is to index globaleaks nodes and receivers.
 
 ```
 pip install -r requirements.txt
+python manage.py syncdb
 ```
 
 To start the django web application in development mode:

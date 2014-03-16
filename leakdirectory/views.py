@@ -15,7 +15,8 @@ def ping(request):
         r = json.loads(request.body)
         update_node(r['hidden_service'])
         response = {'status': 'updated'}
-    except:
+    except Exception as exc:
+        print exc
         response = {'status': 'invalid-request'}
     return HttpResponse(json.dumps(response),
                         content_type="application/json")

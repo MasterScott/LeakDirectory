@@ -37,6 +37,9 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'kombu.transport.django',
+    'leakdirectory',
+    'node'
 )
 
 MIDDLEWARE_CLASSES = (
@@ -86,4 +89,3 @@ STATICFILES_DIRS = (
 )
 
 BROKER_URL = 'django://'
-INSTALLED_APPS += ('kombu.transport.django', )
