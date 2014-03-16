@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+{% for node in nodes %}
+
+<pre>
+{{node.address}}
+{{node.name}}
+{{node.description}}
+{{node.email}}
+{{node.tor2web_admin}}
+{{node.tor2web_receiver}}
+{{node.tor2web_submission}}
+{{node.tor2web_unauth}}
+{{node.default_language}}
+{{node.supported_languages}}
+{{node.last_updated}}
+----
+</pre>
+
+{% endfor %}
+
+{% endblock %}

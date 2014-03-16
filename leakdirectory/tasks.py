@@ -2,24 +2,47 @@ from __future__ import absolute_import
 
 import json
 import logging
-logger = logging.getLogger(__name__)
+import httplib
+import urllib2
 
 import socks
-socks.setdefaultproxy(socks.PROXY_TYPE_SOCKS5, 'localhost', 9050)
-import urllib2
-urllib2.socket.socket = socks.socksocket
-
 from celery import task
 
 from node.models import Node
 from leakdirectory import __version__
 from leakdirectory.celery import app
 
+logger = logging.getLogger(__name__)
+
+class SocksiPyConnection(httplib.HTTPConnection):
+    def __init__(self, proxytype, proxyaddr, proxyport=None, rdns=True, username=None, password=None, *args, **kwargs):
+        self.proxyargs = (proxytype, proxyaddr, proxyport, rdns, username, password)
+        httplib.HTTPConnection.__init__(self, *args, **kwargs)
+
+    def connect(self):
+        self.sock = socks.socksocket()
+        self.sock.setproxy(*self.proxyargs)
+        if type(self.timeout) in (int, float):
+            self.sock.settimeout(self.timeout)
+        self.sock.connect((self.host, self.port))
+
+class SocksiPyHandler(urllib2.HTTPHandler, urllib2.HTTPSHandler):
+    def __init__(self, *args, **kwargs):
+        self.args = args
+        self.kw = kwargs
+        urllib2.HTTPHandler.__init__(self)
+
+    def http_open(self, req):
+        def build(host, port=None, strict=None, timeout=0):
+            conn = SocksiPyConnection(*self.args, host=host, port=port, strict=strict, timeout=timeout, **self.kw)
+            return conn
+        return self.do_open(build, req)
+
 @task
 def update_node(hidden_service):
-    opener = urllib2.build_opener()
+    opener = urllib2.build_opener(SocksiPyHandler(socks.PROXY_TYPE_SOCKS5, "localhost", 9050))
     opener.addheaders = [('User-agent', 'Leak Directory %s' % __version__)]
-    r = opener.open(hidden_service + '/node')
+    r = opener.open(str(hidden_service + '/node'))
     try:
         node = Node.objects.get(address=hidden_service)
     except Node.DoesNotExist: 
